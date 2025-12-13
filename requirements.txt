@@ -1,0 +1,6 @@
+Flask
+Flask-Cors
+pdf2image
+Pillow
+reportlab
+gunicorn
