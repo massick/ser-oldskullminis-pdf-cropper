@@ -117,11 +117,71 @@
             background-color: #f5f5f5;
             border-radius: 4px;
             margin-bottom: 8px;
+            min-height: 44px;
+        }
+
+        .file-item-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
         }
 
         .file-item-name {
             flex-grow: 1;
             word-break: break-word;
+        }
+
+        .file-item-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .copies-label {
+            font-size: 12px;
+            color: #626c71;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
+        .copies-control {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            background-color: #ffffff;
+            border: 1px solid #d0d4d7;
+            padding: 2px;
+        }
+
+        .copies-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            border: none;
+            background-color: #e7ebee;
+            color: #33434c;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .copies-btn:hover {
+            background-color: #d7dde1;
+        }
+
+        .copies-value {
+            min-width: 28px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 0 6px;
         }
 
         .file-item-remove {
@@ -130,7 +190,7 @@
             color: var(--color-error);
             cursor: pointer;
             font-size: 18px;
-            padding: 0 8px;
+            padding: 0 6px;
             transition: color 150ms ease;
         }
 
@@ -139,9 +199,17 @@
         }
 
         .file-count {
-            margin-top: 12px;
+            margin-top: 8px;
             font-size: 13px;
             color: #626c71;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .file-count span {
+            white-space: nowrap;
         }
 
         .actions {
@@ -245,6 +313,7 @@
             margin-top: 20px;
             font-size: 13px;
             line-height: 1.5;
+            text-align: left;
         }
 
         @media (max-width: 600px) {
@@ -269,6 +338,10 @@
             .btn {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .file-item-right {
+                margin-left: 8px;
             }
         }
     </style>
@@ -303,7 +376,11 @@
             <div class="file-list" id="fileList" style="display: none;">
                 <div id="filesContainer"></div>
                 <div class="file-count">
-                    <span id="fileCount">0</span> file selezionato/i (max 10)
+                    <span id="fileCountText"><span id="fileCount">0</span> file selezionato/i (max 10)</span>
+                    <span id="slotCountText">Slot usati: <span id="slotCount">0</span>/10</span>
+                </div>
+                <div style="margin-top:6px;font-size:12px;color:#8a8f93;">
+                    Puoi usare lo stesso file più volte aumentando il numero di copie. Il totale degli slot non può superare 10.
                 </div>
             </div>
 
@@ -318,8 +395,8 @@
 
             <div class="info-box">
                 <strong>📋 Requisiti:</strong><br>
-                • Minimo 1, massimo 10 file PDF<br>
-                • Dimensione: 612pt × 792pt<br>
+                • Minimo 1, massimo 10 slot totali (somma delle copie)<br>
+                • Dimensione PDF originale: 612pt × 792pt<br>
                 • Qualità: 300 DPI (viene conservata)<br>
                 • Output: Griglia 5×2 illustrazioni centrate
             </div>
@@ -331,21 +408,22 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         const API_URL = '';
-        
+
         const fileInput = document.getElementById('fileInput');
         const generateBtn = document.getElementById('generateBtn');
         const clearBtn = document.getElementById('clearBtn');
         const fileList = document.getElementById('fileList');
         const filesContainer = document.getElementById('filesContainer');
         const fileCount = document.getElementById('fileCount');
+        const slotCount = document.getElementById('slotCount');
         const alertError = document.getElementById('alertError');
         const alertSuccess = document.getElementById('alertSuccess');
         const loading = document.getElementById('loading');
 
-        let selectedFiles = [];
+        // [{ file: File, copies: number }]
+        let selectedItems = [];
 
         function showError(message) {
             alertError.textContent = message;
@@ -359,56 +437,115 @@
             setTimeout(() => alertSuccess.classList.remove('show'), 5000);
         }
 
+        function getTotalSlots() {
+            return selectedItems.reduce((sum, item) => sum + item.copies, 0);
+        }
+
         function updateFileList() {
-            fileCount.textContent = selectedFiles.length;
+            fileCount.textContent = selectedItems.length.toString();
+            slotCount.textContent = getTotalSlots().toString();
             filesContainer.innerHTML = '';
 
-            selectedFiles.forEach((file, index) => {
+            selectedItems.forEach((item, index) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
                 fileItem.innerHTML = `
-                    <span class="file-item-name">${file.name}</span>
-                    <button class="file-item-remove" data-index="${index}" title="Rimuovi">×</button>
+                    <div class="file-item-left">
+                        <span class="file-item-name">${item.file.name}</span>
+                    </div>
+                    <div class="file-item-right">
+                        <span class="copies-label">Copie</span>
+                        <div class="copies-control" data-index="${index}">
+                            <button class="copies-btn copies-minus" type="button" aria-label="Riduci copie">−</button>
+                            <span class="copies-value">${item.copies}</span>
+                            <button class="copies-btn copies-plus" type="button" aria-label="Aumenta copie">+</button>
+                        </div>
+                        <button class="file-item-remove" data-index="${index}" title="Rimuovi">×</button>
+                    </div>
                 `;
                 filesContainer.appendChild(fileItem);
             });
 
-            fileList.style.display = selectedFiles.length > 0 ? 'block' : 'none';
-            generateBtn.disabled = selectedFiles.length === 0;
-            clearBtn.disabled = selectedFiles.length === 0;
+            const hasItems = selectedItems.length > 0;
+            fileList.style.display = hasItems ? 'block' : 'none';
+            generateBtn.disabled = !hasItems || getTotalSlots() === 0;
+            clearBtn.disabled = !hasItems;
         }
 
         fileInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
 
-            if (files.length + selectedFiles.length > 10) {
-                showError('❌ Massimo 10 file. Hai selezionato ' + (files.length + selectedFiles.length) + ' file.');
+            if (!files.length) {
                 fileInput.value = '';
                 return;
             }
 
-            selectedFiles = [...selectedFiles, ...files];
+            // Aggiungi i file come nuovi item con 1 copia
+            files.forEach(file => {
+                selectedItems.push({ file, copies: 1 });
+            });
+
+            // Controllo sul numero di file distinti (non slot)
+            if (selectedItems.length > 10) {
+                showError('❌ Puoi selezionare al massimo 10 file diversi.');
+                selectedItems = selectedItems.slice(0, 10);
+            }
+
+            // Controllo slot totali
+            if (getTotalSlots() > 10) {
+                showError('❌ Il totale delle copie non può superare 10 slot.');
+                // Riduci le copie in eccesso riportando tutte a 1
+                selectedItems = selectedItems.map(item => ({ file: item.file, copies: 1 }));
+            }
+
             fileInput.value = '';
             updateFileList();
         });
 
         filesContainer.addEventListener('click', (e) => {
+            // Rimozione file
             if (e.target.classList.contains('file-item-remove')) {
-                const index = parseInt(e.target.dataset.index);
-                selectedFiles.splice(index, 1);
+                const index = parseInt(e.target.dataset.index, 10);
+                selectedItems.splice(index, 1);
+                updateFileList();
+                return;
+            }
+
+            // Gestione + / -
+            if (e.target.classList.contains('copies-minus') || e.target.classList.contains('copies-plus')) {
+                const control = e.target.closest('.copies-control');
+                if (!control) return;
+                const index = parseInt(control.dataset.index, 10);
+                const item = selectedItems[index];
+                if (!item) return;
+
+                if (e.target.classList.contains('copies-minus')) {
+                    if (item.copies > 1) {
+                        item.copies -= 1;
+                    }
+                } else {
+                    // copies-plus
+                    const newTotal = getTotalSlots() + 1;
+                    if (newTotal > 10) {
+                        showError('❌ Non puoi superare 10 slot totali.');
+                        return;
+                    }
+                    item.copies += 1;
+                }
+
                 updateFileList();
             }
         });
 
         clearBtn.addEventListener('click', () => {
-            selectedFiles = [];
+            selectedItems = [];
             fileInput.value = '';
             updateFileList();
         });
 
         generateBtn.addEventListener('click', async () => {
-            if (selectedFiles.length === 0) {
-                showError('❌ Seleziona almeno un file PDF');
+            if (!selectedItems.length || getTotalSlots() === 0) {
+                showError('❌ Seleziona almeno un file PDF con almeno 1 copia.');
                 return;
             }
 
@@ -416,8 +553,12 @@
             generateBtn.disabled = true;
 
             const formData = new FormData();
-            selectedFiles.forEach(file => {
-                formData.append('files', file);
+
+            // Espandi per copie: stesso file aggiunto N volte
+            selectedItems.forEach(item => {
+                for (let i = 0; i < item.copies; i++) {
+                    formData.append('files', item.file);
+                }
             });
 
             try {
@@ -427,8 +568,14 @@
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    showError('❌ ' + (error.error || 'Errore durante l\'elaborazione'));
+                    let errorText = 'Errore durante l\'elaborazione';
+                    try {
+                        const error = await response.json();
+                        errorText = error.error || errorText;
+                    } catch (_) {
+                        // ignore parse error
+                    }
+                    showError('❌ ' + errorText);
                 } else {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
@@ -441,7 +588,7 @@
                     document.body.removeChild(a);
 
                     showSuccess('✓ PDF generato e scaricato con successo!');
-                    selectedFiles = [];
+                    selectedItems = [];
                     fileInput.value = '';
                     updateFileList();
                 }
@@ -449,7 +596,7 @@
                 showError('❌ Errore di connessione: ' + error.message);
             } finally {
                 loading.classList.remove('show');
-                generateBtn.disabled = selectedFiles.length === 0;
+                generateBtn.disabled = !selectedItems.length || getTotalSlots() === 0;
             }
         });
 
