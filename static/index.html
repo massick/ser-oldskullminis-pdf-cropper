@@ -352,8 +352,8 @@
             <div class="logo">📄</div>
             <h1>PDF Illustration Cropper</h1>
             <p class="description">
-                Ritagli automaticamente le illustrazioni dai tuoi PDF e crea una composizione ordinata in una singola pagina.
-                Seleziona da 1 a 10 file PDF e scarica il risultato.
+                Automatically crop illustrations from your PDFs and create a clean layout on a single page.
+                Select 1 to 10 PDF files and download the result.
             </p>
         </div>
 
@@ -369,44 +369,50 @@
                     multiple
                 >
                 <label for="fileInput" class="file-input-label">
-                    📁 Seleziona file PDF
+                    📁 Select PDF files
                 </label>
             </div>
 
             <div class="file-list" id="fileList" style="display: none;">
                 <div id="filesContainer"></div>
                 <div class="file-count">
-                    <span id="fileCountText"><span id="fileCount">0</span> file selezionato/i (max 10)</span>
-                    <span id="slotCountText">Slot usati: <span id="slotCount">0</span>/10</span>
+                    <span id="fileCountText">
+                        <span id="fileCount">0</span> file(s) selected (max 10)
+                    </span>
+                    <span id="slotCountText">
+                        Slots used: <span id="slotCount">0</span>/10
+                    </span>
                 </div>
                 <div style="margin-top:6px;font-size:12px;color:#8a8f93;">
-                    Puoi usare lo stesso file più volte aumentando il numero di copie. Il totale degli slot non può superare 10.
+                    You can reuse the same file multiple times by increasing the number of copies. 
+                    The total number of slots cannot exceed 10.
                 </div>
             </div>
 
             <div class="actions">
                 <button class="btn btn-primary" id="generateBtn" disabled>
-                    ⚙️ Genera PDF
+                    ⚙️ Generate PDF
                 </button>
                 <button class="btn btn-secondary" id="clearBtn" disabled>
-                    🗑️ Cancella
+                    🗑️ Clear
                 </button>
             </div>
 
             <div class="info-box">
-                <strong>📋 Requisiti:</strong><br>
-                • Minimo 1, massimo 10 slot totali (somma delle copie)<br>
-                • Dimensione PDF originale: 612pt × 792pt<br>
-                • Qualità: 300 DPI (viene conservata)<br>
-                • Output: Griglia 5×2 illustrazioni centrate
+                <strong>📋 Requirements:</strong><br>
+                • Minimum 1, maximum 10 total slots (sum of copies)<br>
+                • Original PDF size: 612pt × 792pt<br>
+                • Quality: 300 DPI (preserved)<br>
+                • Output: 5×2 grid with centered illustrations
             </div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 12px; color: #626c71;">Elaborazione in corso...</p>
+            <p style="margin-top: 12px; color: #626c71;">Loading...</p>
         </div>
     </div>
+
 
     <script>
         const API_URL = '';
@@ -454,13 +460,13 @@
                         <span class="file-item-name">${item.file.name}</span>
                     </div>
                     <div class="file-item-right">
-                        <span class="copies-label">Copie</span>
+                        <span class="copies-label">Copies</span>
                         <div class="copies-control" data-index="${index}">
-                            <button class="copies-btn copies-minus" type="button" aria-label="Riduci copie">−</button>
+                            <button class="copies-btn copies-minus" type="button" aria-label="Decrease copies">−</button>
                             <span class="copies-value">${item.copies}</span>
-                            <button class="copies-btn copies-plus" type="button" aria-label="Aumenta copie">+</button>
+                            <button class="copies-btn copies-plus" type="button" aria-label="Increase copies">+</button>
                         </div>
-                        <button class="file-item-remove" data-index="${index}" title="Rimuovi">×</button>
+                        <button class="file-item-remove" data-index="${index}" title="Remove">×</button>
                     </div>
                 `;
                 filesContainer.appendChild(fileItem);
@@ -487,13 +493,13 @@
 
             // Controllo sul numero di file distinti (non slot)
             if (selectedItems.length > 10) {
-                showError('❌ Puoi selezionare al massimo 10 file diversi.');
+                showError('❌ You can select up to 10 different files.');
                 selectedItems = selectedItems.slice(0, 10);
             }
 
             // Controllo slot totali
             if (getTotalSlots() > 10) {
-                showError('❌ Il totale delle copie non può superare 10 slot.');
+                showError('❌ The total number of copies cannot exceed 10 slots.');
                 // Riduci le copie in eccesso riportando tutte a 1
                 selectedItems = selectedItems.map(item => ({ file: item.file, copies: 1 }));
             }
@@ -527,7 +533,7 @@
                     // copies-plus
                     const newTotal = getTotalSlots() + 1;
                     if (newTotal > 10) {
-                        showError('❌ Non puoi superare 10 slot totali.');
+                        showError('❌ You cannot exceed 10 total slots.');
                         return;
                     }
                     item.copies += 1;
@@ -545,7 +551,7 @@
 
         generateBtn.addEventListener('click', async () => {
             if (!selectedItems.length || getTotalSlots() === 0) {
-                showError('❌ Seleziona almeno un file PDF con almeno 1 copia.');
+                showError('❌ Select at least one PDF file with at least 1 copy.');
                 return;
             }
 
@@ -568,7 +574,7 @@
                 });
 
                 if (!response.ok) {
-                    let errorText = 'Errore durante l\'elaborazione';
+                    let errorText = 'Error during processing';
                     try {
                         const error = await response.json();
                         errorText = error.error || errorText;
@@ -587,13 +593,13 @@
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
 
-                    showSuccess('✓ PDF generato e scaricato con successo!');
+                    showSuccess('✓ PDF generated and downloaded successfully!');
                     selectedItems = [];
                     fileInput.value = '';
                     updateFileList();
                 }
             } catch (error) {
-                showError('❌ Errore di connessione: ' + error.message);
+                showError('❌ Connection error: ' + error.message);
             } finally {
                 loading.classList.remove('show');
                 generateBtn.disabled = !selectedItems.length || getTotalSlots() === 0;
