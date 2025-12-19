@@ -29,9 +29,6 @@ RIGHT_MARGIN = 55
 TOP_MARGIN = 52
 BOTTOM_MARGIN = 52
 
-# Measured scale fix
-SCALE_FIX = 1.04
-
 
 @app.route('/')
 def index():
@@ -144,22 +141,8 @@ def create_grid_pdf(images):
 
             # Original image size in pixels
             img_width, img_height = img.size
-            aspect_ratio = img_width / img_height
-
-            # Cell defines the available space
-            max_width = cell_width
-            max_height = cell_height
-
-            if aspect_ratio > 1:  # Wider than tall
-                img_display_width = min(max_width, max_height * aspect_ratio)
-                img_display_height = img_display_width / aspect_ratio
-            else:  # Taller than wide
-                img_display_height = min(max_height, max_width / aspect_ratio)
-                img_display_width = img_display_height * aspect_ratio
-
-            # Apply measured scale fix
-            img_display_width *= SCALE_FIX
-            img_display_height *= SCALE_FIX
+            img_display_width = img_width * 72.0 / DPI
+            img_display_height = img_height * 72.0 / DPI
 
             # Center image inside the cell
             img_x = x_cell + (cell_width - img_display_width) / 2
