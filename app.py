@@ -123,6 +123,13 @@ def create_grid_pdf(images):
     output = io.BytesIO()
     c = canvas.Canvas(output, pagesize=(PDF_WIDTH, PDF_HEIGHT))
 
+    # Force metadata values (must not be None)
+    c.setTitle("")        # or a real title
+    c.setAuthor("")       # empty string avoids '(anonymous)'
+    c.setSubject("")      # empty string avoids '(unspecified)'
+    c.setCreator("")      # empty string avoids '(unspecified)'
+    c.setKeywords("")
+
     temp_dir = tempfile.mkdtemp()
 
     try:
