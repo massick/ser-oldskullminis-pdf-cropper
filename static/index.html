@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Illustration Cropper</title>
+    <title>Magic Layout Maker</title>
+    <link rel="stylesheet" href="css/fontawesome.min.css" />
+    <link rel="stylesheet" href="css/solid.min.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+        rel="stylesheet"
+    />
     <style>
         :root {
-            --color-primary: #2180a1;
-            --color-primary-hover: #1d748a;
+            --color-primary: #1E2121;
+            --color-primary-hover: #000000;
             --color-error: #c0152f;
             --color-success: #208089;
             --color-background: #fcfcf9;
             --color-surface: #ffffff;
-            --color-text: #134252;
+            --color-text: #1E2121;
             --color-border: #5e5240;
         }
 
@@ -40,31 +46,25 @@
         }
 
         .logo {
-            width: 80px;
-            height: 80px;
             margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
-            color: white;
         }
 
         h1 {
-            margin: 0 0 10px 0;
-            font-size: 32px;
+            margin: 0 0 20px 0;
+            font-size: 48px;
             font-weight: 600;
             color: var(--color-text);
+            font-family: "Lacquer", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
         .description {
-            font-size: 16px;
-            color: #626c71;
-            max-width: 600px;
-            margin: 0 auto 30px;
-            line-height: 1.6;
+            font-size: 15px;
+            color: #515759;
+            max-width: 800px;
+            margin: 0 auto 10px;
         }
 
         .upload-section {
@@ -142,7 +142,7 @@
 
         .copies-label {
             font-size: 12px;
-            color: #626c71;
+            color: #515759;
             margin-right: 4px;
             white-space: nowrap;
         }
@@ -201,7 +201,7 @@
         .file-count {
             margin-top: 8px;
             font-size: 13px;
-            color: #626c71;
+            color: #515759;
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
@@ -305,30 +305,17 @@
             to { transform: rotate(360deg); }
         }
 
-        .info-box {
-            background-color: var(--color-background);
-            border-left: 4px solid var(--color-primary);
-            padding: 16px;
-            border-radius: 4px;
-            margin-top: 20px;
-            font-size: 13px;
-            line-height: 1.5;
-            text-align: left;
-        }
-
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
             }
 
-            h1 {
-                font-size: 24px;
+            .logo img {
+                max-width: 300px;
             }
 
-            .logo {
-                width: 60px;
-                height: 60px;
-                font-size: 30px;
+            h1 {
+                font-size: 38px;
             }
 
             .actions {
@@ -349,11 +336,21 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">📄</div>
-            <h1>PDF Illustration Cropper</h1>
+            <div class="logo">
+                <img src="logo.png" />
+            </div>
+            <h1>Magic Layout Maker</h1>
             <p class="description">
-                Automatically crop illustrations from your PDFs and create a clean layout on a single page.
-                Select 1 to 10 PDF files and download the result.
+                You've found Massick the Compiler's hidden lair!<br />
+                Upload the PDF files of the miniatures from the Old Skull Minis Patreon to lay out a printable sheet with up to 10 characters.
+            </p>
+            <p class="description">
+                Printers usually add a margin before printing; don't use the "Fit" function, but "Custom scale: 100%".<br />
+                The illustrations are far enough from the border of the page.
+            </p>
+            <p class="description">
+                The path back here may be difficult to remember, don't forget to bookmark this page!<br />
+                If you encounter any bugs, please send message to oldskullminis[at]gmail[com]
             </p>
         </div>
 
@@ -369,7 +366,8 @@
                     multiple
                 >
                 <label for="fileInput" class="file-input-label">
-                    📁 Select PDF files
+                    <i class="fa-solid fa-dungeon"></i>
+                    Select PDF files
                 </label>
             </div>
 
@@ -391,25 +389,19 @@
 
             <div class="actions">
                 <button class="btn btn-primary" id="generateBtn" disabled>
-                    ⚙️ Generate PDF
+                    <i class="fa-solid fa-wand-sparkles"></i>
+                    Generate PDF
                 </button>
                 <button class="btn btn-secondary" id="clearBtn" disabled>
-                    🗑️ Clear
+                    <i class="fa-solid fa-explosion"></i>
+                    Clear
                 </button>
-            </div>
-
-            <div class="info-box">
-                <strong>📋 Requirements:</strong><br>
-                • Minimum 1, maximum 10 total slots (sum of copies)<br>
-                • Original PDF size: 612pt × 792pt<br>
-                • Quality: 300 DPI (preserved)<br>
-                • Output: 5×2 grid with centered illustrations
             </div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 12px; color: #626c71;">Loading...</p>
+            <p style="margin-top: 12px; color: #515759;">Loading...</p>
         </div>
     </div>
 
